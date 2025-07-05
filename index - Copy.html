@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Invoice ទឹក-ភ្លើង</title>
+  <style>
+    body {
+      font-family: 'Khmer OS Battambang', sans-serif;
+      margin: 10px;
+      background: #f5f7fa;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      margin-bottom: 30px;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    label, select, input, button {
+      width: 100%;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    input, select {
+      padding: 8px;
+      border-radius: 6px;
+      border: 1.5px solid #ccc;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 12px;
+      background: #1e88e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #1565c0;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: center;
+      word-wrap: break-word;
+    }
+    th {
+      background: #1e88e5;
+      color: white;
+    }
+    /* Modal */
+    .modal {
+      display: none; 
+      position: fixed; 
+      z-index: 1000; 
+      padding-top: 80px; 
+      left: 0;
+      top: 0;
+      width: 100%; 
+      height: 100%; 
+      overflow: auto; 
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: auto;
+      padding: 20px 30px;
+      border-radius: 10px;
+      max-width: 700px;
+      font-family: 'Khmer OS Battambang', sans-serif;
+      position: relative;
+      overflow-x: auto;
+      box-sizing: border-box;
+      max-height: 85vh;
+    }
+    .close {
+      color: #aaa;
+      position: absolute;
+      right: 15px;
+      top: 10px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      user-select: none;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+    }
+    .invoice-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .invoice-header h1 {
+      margin: 0;
+      font-size: 28px;
+      color: #1e88e5;
+      letter-spacing: 2px;
+    }
+    .invoice-info {
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .invoice-info p {
+      margin: 3px 0;
+    }
+    .invoice-customer {
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    .invoice-customer strong {
+      display: inline-block;
+      width: 100px;
+    }
+    .invoice-table, .invoice-table-electric {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .invoice-table th, .invoice-table td,
+    .invoice-table-electric th, .invoice-table-electric td {
+      padding: 10px;
+      border: 1px solid #444;
+      text-align: center;
+    }
+    .invoice-table th, .invoice-table-electric th {
+      background-color: #1e88e5;
+      color: white;
+    }
+    .total-row td {
+      font-weight: 700;
+      background: #e3f2fd;
+    }
+    .btn-group {
+      text-align: center;
+      margin-top: 15px;
+    }
+    .btn-group button {
+      margin: 0 10px;
+      width: auto;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    /* Responsive */
+    @media (max-width: 480px) {
+      .modal-content {
+        max-width: 95%;
+        max-height: 90vh;
+        padding: 15px 20px;
+      }
+      label, select, input, button {
+        font-size: 14px;
+      }
+      .invoice-header h1 {
+        font-size: 24px;
+      }
+      .invoice-customer strong {
+        width: 90px;
+      }
+    }
+   #data-tbody tr:hover {
+    background-color: #e3f2fd;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>គណនាទឹកភ្លើង (ចាស់ - ថ្មី)</h2>
+
+  <label>តម្លៃទឹក</label>
+  <input type="number" id="water-price" value="3000" />
+
+  <label>តម្លៃភ្លើង</label>
+  <input type="number" id="electric-price" value="4000" />
+
+  <label>បន្ទប់</label>
+  <select id="room">
+    <option value="">-- ជ្រើសបន្ទប់ --</option>
+    <option value="1">បន្ទប់ ១</option>
+    <option value="2">បន្ទប់ ២</option>
+    <option value="3">បន្ទប់ ៣</option>
+    <option value="4">បន្ទប់ ៤</option>
+  </select>
+
+  <label>ខែ</label>
+  <input type="month" id="month" />
+
+  <label>ឈ្មោះអតិថិជន</label>
+  <input type="text" id="customer-name" placeholder="បញ្ចូលឈ្មោះអតិថិជន" />
+
+  <label>លេខទូរស័ព្ទ</label>
+  <input type="tel" id="customer-phone" placeholder="បញ្ចូលលេខទូរស័ព្ទ" />
+
+  <label>ទឹកចាស់</label>
+  <input type="number" id="water-old" />
+  <label>ទឹកថ្មី</label>
+  <input type="number" id="water-new" />
+  <label>ភ្លើងចាស់</label>
+  <input type="number" id="electric-old" />
+  <label>ភ្លើងថ្មី</label>
+  <input type="number" id="electric-new" />
+
+  <button onclick="saveData()">រក្សាទុក</button>
+  <div id="calc-result" style="margin-top: 15px; font-weight: 700; color: green;"></div>
+</div>
+
+<div class="container">
+  <label>បង្ហាញតែបន្ទប់:</label>
+  <select id="filter-room" onchange="loadData()">
+    <option value="">-- បង្ហាញទាំងអស់ --</option>
+    <option value="1">បន្ទប់ ១</option>
+    <option value="2">បន្ទប់ ២</option>
+    <option value="3">បន្ទប់ ៣</option>
+    <option value="4">បន្ទប់ ៤</option>
+  </select>
+</div>
+
+<div class="container">
+  <h3>ទិន្នន័យ</h3>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>បន្ទប់</th><th>ខែ</th><th>ឈ្មោះអតិថិជន</th><th>លេខទូរស័ព្ទ</th><th>លេខវិក្កយបត្រ</th><th>សកម្មភាព</th>
+        </tr>
+      </thead>
+      <tbody id="data-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="invoiceModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+  <div class="modal-content" tabindex="-1">
+    
+
+    <div class="invoice-header">
+      <h1>វិក្កយបត្រ ទឹក-ភ្លើង</h1>
+      <p>លេខវិក្កយបត្រ: <span id="modalInvoiceNo"></span></p>
+      <p>បន្ទប់: <span id="modalRoom"></span> | ខែ: <span id="modalMonth"></span></p>
+    </div>
+
+    <div class="invoice-customer">
+      <p><strong>អតិថិជន:</strong> <span id="modalCustomerName"></span></p>
+      <p><strong>លេខទូរស័ព្ទ:</strong> <span id="modalCustomerPhone"></span></p>
+    </div>
+
+    <!-- Water Table -->
+    <table class="invoice-table" aria-describedby="modalDesc" role="table">
+      <caption style="text-align:left; font-weight:bold; margin-bottom: 8px;">ទឹក</caption>
+      <thead>
+        <tr>
+          <th>ចាស់</th>
+          <th>ថ្មី</th>
+          <th>ប្រើ</th>
+          <th>តម្លៃ</th>
+          <th>ថ្លៃ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="modalWaterOld"></td>
+          <td id="modalWaterNew"></td>
+          <td id="modalWaterUsed"></td>
+          <td id="modalWaterPrice"></td>
+          <td id="modalWaterCost"></td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="4">សរុបទឹក</td>
+          <td id="modalWaterTotal"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Electric Table -->
+    <table class="invoice-table-electric" aria-describedby="modalDesc" role="table">
+      <caption style="text-align:left; font-weight:bold; margin-bottom: 8px;">ភ្លើង</caption>
+      <thead>
+        <tr>
+          <th>ចាស់</th>
+          <th>ថ្មី</th>
+          <th>ប្រើ</th>
+          <th>តម្លៃ</th>
+          <th>ថ្លៃ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td id="modalElectricOld"></td>
+          <td id="modalElectricNew"></td>
+          <td id="modalElectricUsed"></td>
+          <td id="modalElectricPrice"></td>
+          <td id="modalElectricCost"></td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="4">សរុបភ្លើង</td>
+          <td id="modalElectricTotal"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="btn-group">
+      <button onclick="printInvoice()">🖨️ បោះពុម្ពវិក្កយបត្រ</button>
+      <button onclick="closeModal()">បិទ</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'waterElectricOldNewData';
+  let currentViewIndex = null;
+
+  function saveData() {
+    const room = document.getElementById('room').value;
+    const month = document.getElementById('month').value;
+    const waterOld = parseInt(document.getElementById('water-old').value);
+    const waterNew = parseInt(document.getElementById('water-new').value);
+    const electricOld = parseInt(document.getElementById('electric-old').value);
+    const electricNew = parseInt(document.getElementById('electric-new').value);
+    const customerName = document.getElementById('customer-name').value.trim();
+    const customerPhone = document.getElementById('customer-phone').value.trim();
+
+    if (!room || !month || isNaN(waterOld) || isNaN(waterNew) || isNaN(electricOld) || isNaN(electricNew) || !customerName || !customerPhone) {
+      alert('សូមបំពេញទិន្នន័យទាំងអស់');
+      return;
+    }
+
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    let index = data.findIndex(d => d.room === room && d.month === month);
+    const invoiceNo = generateInvoiceNumber(room, month, index === -1 ? data.length : index);
+    const entry = { room, month, waterOld, waterNew, electricOld, electricNew, customerName, customerPhone, invoiceNo };
+
+    if (index !== -1) data[index] = entry; else data.push(entry);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    document.getElementById('calc-result').innerText = `✅ បានរក្សាទុក! លេខវិក្កយបត្រ: ${invoiceNo}`;
+    loadData();
+  }
+
+  function generateInvoiceNumber(room, month, index) {
+    const ym = month.replace('-', '');
+    return `INV-${ym}-${String(index + 1).padStart(3, '0')}`;
+  }
+
+
+
+
+
+
+
+function loadData() {
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  const filterRoom = document.getElementById('filter-room').value;
+  const tbody = document.getElementById('data-tbody');
+  tbody.innerHTML = '';
+
+  const filteredData = filterRoom ? data.filter(d => d.room === filterRoom) : data;
+
+  filteredData.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer'; // pointer cursor on hover
+
+    tr.innerHTML = `
+      <td>${d.room}</td>
+      <td>${d.month}</td>
+      <td>${d.customerName}</td>
+      <td>${d.customerPhone}</td>
+      <td>${d.invoiceNo || 'N/A'}</td>
+      <td>
+        <select onchange="handleAction(this, ${i})" aria-label="ជ្រើសសកម្មភាព">
+          <option value="">-- សកម្មភាព --</option>
+          <option value="view">👁️ View</option>
+          <option value="edit">✏️ Edit</option>
+          <option value="delete">🗑 Delete</option>
+          <option value="print">🖨️ Print</option>
+        </select>
+      </td>
+    `;
+
+    // Add click event to whole row except the last cell (action select)
+    tr.addEventListener('click', (e) => {
+      // បញ្ច្រាសបើចុចលើ select ទេ ដើម្បីមិនបើក view ជា 2 ដង
+      if (e.target.tagName.toLowerCase() !== 'select' && e.target.tagName.toLowerCase() !== 'option') {
+        viewDetails(i);
+      }
+    });
+
+    tbody.appendChild(tr);
+  });
+}
+
+
+  function viewDetails(index) {
+    currentViewIndex = index;
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    if (index < 0 || index >= data.length) return alert('មិនមានទិន្នន័យ!');
+
+    const d = data[index];
+    const waterPrice = parseInt(document.getElementById('water-price').value) || 0;
+    const electricPrice = parseInt(document.getElementById('electric-price').value) || 0;
+
+    const waterUsed = d.waterNew - d.waterOld;
+    const electricUsed = d.electricNew - d.electricOld;
+    const waterCost = waterUsed * waterPrice;
+    const electricCost = electricUsed * electricPrice;
+
+    document.getElementById('modalInvoiceNo').textContent = d.invoiceNo;
+    document.getElementById('modalRoom').textContent = d.room;
+    document.getElementById('modalMonth').textContent = d.month;
+    document.getElementById('modalCustomerName').textContent = d.customerName;
+    document.getElementById('modalCustomerPhone').textContent = d.customerPhone;
+
+    document.getElementById('modalWaterOld').textContent = d.waterOld;
+    document.getElementById('modalWaterNew').textContent = d.waterNew;
+    document.getElementById('modalWaterUsed').textContent = waterUsed;
+    document.getElementById('modalWaterPrice').textContent = waterPrice.toLocaleString();
+    document.getElementById('modalWaterCost').textContent = waterCost.toLocaleString() + ' រៀល';
+    document.getElementById('modalWaterTotal').textContent = waterCost.toLocaleString() + ' រៀល';
+
+    document.getElementById('modalElectricOld').textContent = d.electricOld;
+    document.getElementById('modalElectricNew').textContent = d.electricNew;
+    document.getElementById('modalElectricUsed').textContent = electricUsed;
+    document.getElementById('modalElectricPrice').textContent = electricPrice.toLocaleString();
+    document.getElementById('modalElectricCost').textContent = electricCost.toLocaleString() + ' រៀល';
+    document.getElementById('modalElectricTotal').textContent = electricCost.toLocaleString() + ' រៀល';
+
+    document.getElementById('invoiceModal').style.display = 'block';
+  }
+
+  function closeModal() {
+    document.getElementById('invoiceModal').style.display = 'none';
+  }
+
+  function editEntry(index) {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    const d = data[index];
+    if (!d) return;
+
+    document.getElementById('room').value = d.room;
+    document.getElementById('month').value = d.month;
+    document.getElementById('customer-name').value = d.customerName;
+    document.getElementById('customer-phone').value = d.customerPhone;
+    document.getElementById('water-old').value = d.waterOld;
+    document.getElementById('water-new').value = d.waterNew;
+    document.getElementById('electric-old').value = d.electricOld;
+    document.getElementById('electric-new').value = d.electricNew;
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function deleteEntry(index) {
+    if (!confirm('តើអ្នកពិតជាចង់លុបវិក្កយបត្រនេះមែនទេ?')) return;
+
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    if (index < 0 || index >= data.length) return;
+
+    data.splice(index, 1);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    loadData();
+  }
+
+  
+
+
+function printInvoice() {
+  if (currentViewIndex === null) {
+    alert('មិនមានទិន្នន័យសម្រាប់បោះពុម្ព!');
+    return;
+  }
+
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  const d = data[currentViewIndex];
+  if (!d) return;
+
+  const waterPrice = parseInt(document.getElementById('water-price').value) || 0;
+  const electricPrice = parseInt(document.getElementById('electric-price').value) || 0;
+
+  const waterUsed = d.waterNew - d.waterOld;
+  const electricUsed = d.electricNew - d.electricOld;
+  const waterCost = waterUsed * waterPrice;
+  const electricCost = electricUsed * electricPrice;
+  const total = waterCost + electricCost;
+
+  const printContent = `
+    <style>
+      body {
+        font-family: 'Khmer OS Battambang', sans-serif;
+        margin: 20px;
+        background: #f5f7fa;
+        color: #333;
+      }
+      h1 {
+        text-align: center;
+        color: #1e88e5;
+        margin-bottom: 10px;
+      }
+      p {
+        margin: 3px 0;
+        font-size: 14px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin-top: 15px;
+      }
+      th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: center;
+      }
+      th {
+        background-color: #1e88e5;
+        color: white;
+      }
+      .total {
+        font-weight: bold;
+        background-color: #e3f2fd;
+      }
+      .grand-total {
+        font-weight: bold;
+        text-align: right;
+        margin-top: 20px;
+        font-size: 16px;
+        color: #2e7d32;
+      }
+      .section-title {
+        font-weight: bold;
+        font-size: 16px;
+        color: #1e88e5;
+        margin-top: 25px;
+        border-left: 4px solid #1e88e5;
+        padding-left: 8px;
+      }
+      @media print {
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        th { background-color: #1e88e5 !important; color: white !important; }
+        .total { background-color: #e3f2fd !important; }
+        .grand-total { color: #2e7d32 !important; }
+      }
+    </style>
+
+    <h1>វិក្កយបត្រ ទឹក-ភ្លើង</h1>
+    <p><strong>លេខវិក្កយបត្រ:</strong> ${d.invoiceNo}</p>
+    <p><strong>បន្ទប់:</strong> ${d.room} | <strong>ខែ:</strong> ${d.month}</p>
+    <p><strong>អតិថិជន:</strong> ${d.customerName}</p>
+    <p><strong>លេខទូរស័ព្ទ:</strong> ${d.customerPhone}</p>
+
+    <div class="section-title">ទិន្នន័យទឹក</div>
+    <table>
+      <thead>
+        <tr><th>ចាស់</th><th>ថ្មី</th><th>ប្រើ</th><th>តម្លៃ</th><th>ថ្លៃ</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>${d.waterOld}</td>
+          <td>${d.waterNew}</td>
+          <td>${waterUsed}</td>
+          <td>${waterPrice.toLocaleString()}</td>
+          <td>${waterCost.toLocaleString()} រៀល</td>
+        </tr>
+        <tr class="total">
+          <td colspan="4">សរុបទឹក</td>
+          <td>${waterCost.toLocaleString()} រៀល</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-title">ទិន្នន័យភ្លើង</div>
+    <table>
+      <thead>
+        <tr><th>ចាស់</th><th>ថ្មី</th><th>ប្រើ</th><th>តម្លៃ</th><th>ថ្លៃ</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>${d.electricOld}</td>
+          <td>${d.electricNew}</td>
+          <td>${electricUsed}</td>
+          <td>${electricPrice.toLocaleString()}</td>
+          <td>${electricCost.toLocaleString()} រៀល</td>
+        </tr>
+        <tr class="total">
+          <td colspan="4">សរុបភ្លើង</td>
+          <td>${electricCost.toLocaleString()} រៀល</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="grand-total">សរុបចុងក្រោយ: ${total.toLocaleString()} រៀល</p>
+  `;
+
+  const win = window.open('', '', 'width=800,height=900');
+  win.document.write(`
+    <html>
+      <head>
+        <title>Print Invoice</title>
+        <style>
+          @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            th { background-color: #1e88e5 !important; color: white !important; }
+            .total { background-color: #e3f2fd !important; }
+            .grand-total { color: #2e7d32 !important; }
+          }
+        </style>
+      </head>
+      <body onload="window.print(); window.close();">${printContent}</body>
+    </html>
+  `);
+  win.document.close();
+}
+
+
+</script>
+
+</body>
+</html>
